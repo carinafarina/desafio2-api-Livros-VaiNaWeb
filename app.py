@@ -8,7 +8,8 @@ import sqlite3
 app = Flask(__name__) # dandername - Serve para setar ou referenciar o arquivo principal app.py
 
 def init_db():
-    with sqlite3.connect('database.db') as conn:
+   # With ele abre e fecha a conexao com o banco de dados. O .connect, ele cria e abre uma conexao com o mando de dados(FAZ O PAPEL DO CREATE E USE)
+    with sqlite3.connect('database.db') as conn: # conn é uma variavel que guarda o with sqlite3.connect('database.db')
 
         conn.execute("""CREATE TABLE IF NOT EXISTS livros(
                      id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -24,7 +25,7 @@ init_db()
 # nome do @ é decorador
 @app.route('/')   # para criar a estrutura da rota mais simples. rota é uma porta de acesso.
 def home_page():
-    return "<h2>Minha pagina com flask</h2>"
+    return "<h2>Minha pagina lindissima com flask</h2>"
 
 
 @app.route('/doar', methods=['POST'])
@@ -36,15 +37,32 @@ def doar():
     autor = dados.get('autor')
     imagem_url = dados.get('imagem_url')
 
-    if not titulo or not categoria or not autor or not imagem_url:
+    if not all ([titulo, categoria, autor, imagem_url]):
         return jsonify({"erro":"Todos os campos sâo obrigatorios"}),400
     
     with sqlite3.connect('database.db') as conn:
-        conn.execute(f"""INSERT INTO livros (titulo,categoria,autor,imagem_url)VALUES('{titulo}','{categoria}','{autor}','{imagem_url}')""")
-        conn.commit()
+        conn.execute("""INSERT INTO livros (titulo,categoria,autor,imagem_url)VALUES(?,?,?,?)""",(titulo, categoria, autor, imagem_url))
+        conn.commit() # serve para salvar
 
         return jsonify({"mensagem":" Livros cadastrados com sucesso"}),201
 
+@app.route('/livros', methods=['GET'])
+def listar_livro():
+    with sqlite3.connect('database.db') as conn:
+        livros = conn.execute("SELECT * FROM livros").fetchall() # fetchall, pega tudo que foi insirido no banco de dados.
+
+    livros_formatados = []  # organizar os livros
+
+    for livro in livros:
+        dicionario_livro = {
+            "id": livro[0],
+            "titulo": livro[1],
+            "categoria": livro[2],
+            "autor": livro[3],
+            "imagem_url": livro[4]
+        }   
+        livros_formatados.append(dicionario_livro) # o append é para add 
+    return jsonify(livros_formatados)     
 
 if __name__ == '__main__': #__name__ precisa ser o principai como __main__
     app.run(debug=True) # debug=True é para rodar o codigo automatico.
