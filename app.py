@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify 
+from flask import Flask, request, jsonify, render_template
 # flask importa o microframework 
 # request permite pegar os dados
 # jsonify transformar os dados no formato json
@@ -25,7 +25,7 @@ init_db()
 # nome do @ é decorador
 @app.route('/')   # para criar a estrutura da rota mais simples. rota é uma porta de acesso.
 def home_page():
-    return "<h2>Minha pagina lindissima com flask</h2>"
+    return render_template ('index.html')
 
 
 @app.route('/doar', methods=['POST'])
@@ -62,7 +62,20 @@ def listar_livro():
             "imagem_url": livro[4]
         }   
         livros_formatados.append(dicionario_livro) # o append é para add 
-    return jsonify(livros_formatados)     
+    return jsonify(livros_formatados)   
+
+@app.route('/livros/<int:livro_id>', methods=['DELETE'])
+def deletar_livro(Livro_id):
+    with sqlite3.connect('database.db') as conn:
+        cursor = conn.cursor()  
+        cursor.execute("DELETE FROM livros WHERE id = ?",(Livro_id,))
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            return jsonify({"erro":"Livro nâo encontrado"}), 404
+        
+        return jsonify({"menssagem":"Livro deletado"})
+        
 
 if __name__ == '__main__': #__name__ precisa ser o principai como __main__
     app.run(debug=True) # debug=True é para rodar o codigo automatico.
