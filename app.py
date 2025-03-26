@@ -2,11 +2,12 @@ from flask import Flask, request, jsonify, render_template
 # flask importa o microframework 
 # request permite pegar os dados
 # jsonify transformar os dados no formato json
+from flask_cors import CORS
 
 import sqlite3
 
 app = Flask(__name__) # dandername - Serve para setar ou referenciar o arquivo principal app.py
-
+CORS(app)
 def init_db():
    # With ele abre e fecha a conexao com o banco de dados. O .connect, ele cria e abre uma conexao com o mando de dados(FAZ O PAPEL DO CREATE E USE)
     with sqlite3.connect('database.db') as conn: # conn é uma variavel que guarda o with sqlite3.connect('database.db')
@@ -67,14 +68,14 @@ def listar_livro():
 @app.route('/livros/<int:livro_id>', methods=['DELETE'])
 def deletar_livro(Livro_id):
     with sqlite3.connect('database.db') as conn:
-        cursor = conn.cursor()  
+        cursor = conn.cursor()  # serve para veificar os dados do banco 
         cursor.execute("DELETE FROM livros WHERE id = ?",(Livro_id,))
-        conn.commit()
+        conn.commit() # para salvar no banco de dados
 
         if cursor.rowcount == 0:
             return jsonify({"erro":"Livro nâo encontrado"}), 404
         
-        return jsonify({"menssagem":"Livro deletado"})
+        return jsonify({"menssagem":"Livro deletado"}), 200
         
 
 if __name__ == '__main__': #__name__ precisa ser o principai como __main__
